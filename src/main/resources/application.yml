@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: profile-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/profile_db?options=-c%20timezone=UTC
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.sql
+    enabled: true
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
