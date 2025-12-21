@@ -37,4 +37,4 @@ Open a terminal in the project root and run:
 
 `docker-compose up -d --build`
 
-##Your application will be available at http://localhost:8081.
+## Your application will be available at http://localhost:8081.
