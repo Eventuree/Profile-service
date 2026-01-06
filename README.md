@@ -5,7 +5,7 @@
 ## 🛠 Tech Stack
 
 * **Java 17+** (Core logic)
-* **Spring Boot 3** (Framework)
+* **Spring Boot 4** (Framework)
 * **PostgreSQL** (Database)
 * **Liquibase** (Database Migrations)
 * **Docker & Docker Compose** (Containerization)
@@ -39,4 +39,4 @@ Open a terminal in the project root and run:
 
 ---
 
-## Your application will be available at http://localhost:8080.
+## Your application will be available at http://localhost:8081.
