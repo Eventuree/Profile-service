@@ -1,2 +1,0 @@
-
--- include file: db/changelog/changes/001-create-tables.sql
