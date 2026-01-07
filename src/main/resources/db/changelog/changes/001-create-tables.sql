@@ -43,16 +43,3 @@ CREATE TABLE IF NOT EXISTS ratings
     CONSTRAINT fk_ratings_rated_user FOREIGN KEY (rated_user_id) REFERENCES users (id),
     CONSTRAINT fk_ratings_rater_user FOREIGN KEY (rater_user_id) REFERENCES users (id)
 );
-
--- test
--- ID=1: Іван
-INSERT INTO users (username, first_name, last_name, email, photo_url, gender, age, bio, location)
-VALUES ('ivanovivan', 'Іван', 'Іванов', 'ivanivanov@gmail.com', 'https://i.pravatar.cc/300?img=11', 'MALE', 30, 'Мандрівник, фотограф', 'Київ/Україна');
-
--- ID=2: Анна
-INSERT INTO users (username, first_name, last_name, email, photo_url, gender, age, bio, location)
-VALUES ('annas', 'Анна', 'Шевченко', 'anna@test.com', 'https://i.pravatar.cc/300?img=5', 'FEMALE', 24, 'Люблю каву і котів', 'Львів/Україна');
-
--- ID=3: Петро
-INSERT INTO users (username, first_name, last_name, email, photo_url, gender, age, bio, location)
-VALUES ('petro_dev', 'Петро', 'Бондаренко', 'petro@dev.com', 'https://i.pravatar.cc/300?img=3', 'MALE', 28, 'Java Developer', 'Одеса/Україна');
