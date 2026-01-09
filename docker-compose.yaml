@@ -14,6 +14,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - app-network
 
   # DB
   postgres:
@@ -34,6 +36,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
+    external: true
+    name: eventure-network
