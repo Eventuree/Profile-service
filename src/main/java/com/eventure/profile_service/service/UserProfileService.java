@@ -8,8 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface UserProfileService {
     UserProfileSummaryDto getUserProfileSummary(Long id);
 
-    ProfileResponseDTO createProfile(
-            Long userId, String email, ProfileRequestDTO request, MultipartFile file);
+    ProfileResponseDTO createProfile(ProfileRequestDTO request, MultipartFile file);
 
     ProfileResponseDTO updateProfile(Long userId, ProfileRequestDTO request, MultipartFile file);
 

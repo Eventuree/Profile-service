@@ -52,8 +52,10 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-    public ProfileResponseDTO createProfile(
-            Long userId, String email, ProfileRequestDTO request, MultipartFile file) {
+    public ProfileResponseDTO createProfile(ProfileRequestDTO request, MultipartFile file) {
+        Long userId = request.getUserId();
+        String email = request.getEmail();
+
         if (userProfileRepository.existsByUserId(userId)) {
             throw new ProfileAlreadyExistsException("Profile already exists for user " + userId);
         }
@@ -78,7 +80,8 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-    public ProfileResponseDTO updateProfile(Long userId, ProfileRequestDTO request, MultipartFile file) {
+    public ProfileResponseDTO updateProfile(
+            Long userId, ProfileRequestDTO request, MultipartFile file) {
 
         String photoUrl = uploadFileSafe(file);
 

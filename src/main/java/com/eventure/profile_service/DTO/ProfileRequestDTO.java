@@ -6,6 +6,8 @@ import lombok.Data;
 
 @Data
 public class ProfileRequestDTO {
+    private Long userId;
+    private String email;
     private String firstName;
     private String lastName;
     private String gender;

@@ -25,26 +25,32 @@ public class UserProfileController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProfileResponseDTO> createProfile(
-            @RequestHeader("X-User-Id") Long userId,
-            @RequestHeader(value = "X-User-Email") String email,
             @RequestPart("data") ProfileRequestDTO request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
-        ProfileResponseDTO response =
-                userProfileService.createProfile(userId, email, request, file);
+        if (request.getUserId() == null || request.getEmail() == null) {
+            throw new IllegalArgumentException("UserId and Email are required for creation");
+        }
+
+        ProfileResponseDTO response = userProfileService.createProfile(request, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProfileResponseDTO> updateProfile(
-            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable Long userId,
             @RequestPart("data") ProfileRequestDTO request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
         ProfileResponseDTO response = userProfileService.updateProfile(userId, request, file);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping
-    public ResponseEntity<Void> deleteProfile(@RequestHeader("X-User-Id") Long userId) {
+    @GetMapping("/{userId}")
+    public ResponseEntity<ProfileResponseDTO> getProfile(@PathVariable Long userId) {
+        return ResponseEntity.ok(userProfileService.getProfileByUserId(userId));
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteProfile(@PathVariable Long userId) {
         userProfileService.deleteProfile(userId);
         return ResponseEntity.noContent().build();
     }

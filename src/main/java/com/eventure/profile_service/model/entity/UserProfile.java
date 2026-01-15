@@ -32,7 +32,7 @@ public class UserProfile {
     public String getFullName() {
         String first = firstName != null ? firstName : "";
         String last = lastName != null ? lastName : "";
-        return (first + " " + last).trim(); // .trim() прибере зайвий пробіл, якщо прізвища немає
+        return (first + " " + last).trim();
     }
 
     private String email;
