@@ -4,11 +4,12 @@
 
 ## 🛠 Tech Stack
 
-* **Java 17+** (Core logic)
-* **Spring Boot 4** (Framework)
-* **PostgreSQL** (Database)
-* **Liquibase** (Database Migrations)
-* **Docker & Docker Compose** (Containerization)
+* **Java 21**
+* **Spring Boot 3.5.9**
+* **PostgreSQL**
+* **Liquibase**
+* **Docker & Docker Compose**
+* **AWS**
 
 ---
 
