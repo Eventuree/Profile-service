@@ -1,4 +1,4 @@
-package com.eventure.profile_service.exeption;
+package com.eventure.profile_service.exception;
 
 public class ProfileNotFoundException extends RuntimeException {
     public ProfileNotFoundException(String message) {

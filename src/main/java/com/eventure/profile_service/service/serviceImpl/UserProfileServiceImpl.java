@@ -1,28 +1,28 @@
 package com.eventure.profile_service.service.serviceImpl;
 
-
 import com.eventure.profile_service.DTO.ProfileRequestDTO;
 import com.eventure.profile_service.DTO.ProfileResponseDTO;
 import com.eventure.profile_service.DTO.UserProfileSummaryDto;
-import com.eventure.profile_service.exeption.ProfileNotFoundException;
+import com.eventure.profile_service.exception.ProfileAlreadyExistsException;
+import com.eventure.profile_service.exception.ProfileNotFoundException;
 import com.eventure.profile_service.model.entity.InterestCategory;
 import com.eventure.profile_service.model.entity.UserProfile;
 import com.eventure.profile_service.repository.InterestCategoryRepository;
 import com.eventure.profile_service.repository.UserProfileRepository;
 import com.eventure.profile_service.service.FileStorageService;
 import com.eventure.profile_service.service.UserProfileService;
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,48 +33,88 @@ public class UserProfileServiceImpl implements UserProfileService {
     private final InterestCategoryRepository interestCategoryRepository;
     private final FileStorageService fileStorageService;
 
+    @Lazy @Autowired private UserProfileServiceImpl self;
+
     @Override
     public UserProfileSummaryDto getUserProfileSummary(Long id) {
-        UserProfile user = userProfileRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
+        UserProfile user =
+                userProfileRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new ResponseStatusException(
+                                                HttpStatus.NOT_FOUND,
+                                                "User not found with id: " + id));
 
-        String fullName = (user.getFirstName() != null ? user.getFirstName() : "")
-                + " " +
-                (user.getLastName() != null ? user.getLastName() : "");
+        String fullName = user.getFullName();
 
-        return new UserProfileSummaryDto(
-                fullName.trim(),
-                user.getPhotoUrl()
-        );
+        return new UserProfileSummaryDto(fullName.trim(), user.getPhotoUrl());
     }
 
     @Override
-    public ProfileResponseDTO createOrUpdateProfile(Long userId, String email, ProfileRequestDTO request, MultipartFile file) {
-
-        String photoUrl = null;
-
-        if (file != null && !file.isEmpty()) {
-            try {
-                photoUrl = fileStorageService.uploadFile(file);
-            } catch (Exception e) {
-                log.error("Failed to upload file for user {}", userId, e);
-                throw new RuntimeException("Image upload failed", e);
-            }
+    public ProfileResponseDTO createProfile(
+            Long userId, String email, ProfileRequestDTO request, MultipartFile file) {
+        if (userProfileRepository.existsByUserId(userId)) {
+            throw new ProfileAlreadyExistsException("Profile already exists for user " + userId);
         }
 
-        return saveProfileToDb(userId, email, request, photoUrl);
+        String photoUrl = uploadFileSafe(file);
+
+        return self.createProfileInDb(userId, email, request, photoUrl);
     }
 
     @Transactional
-    protected ProfileResponseDTO saveProfileToDb(Long userId, String email, ProfileRequestDTO request, String newPhotoUrl) {
+    public ProfileResponseDTO createProfileInDb(
+            Long userId, String email, ProfileRequestDTO request, String photoUrl) {
+        UserProfile profile =
+                UserProfile.builder().userId(userId).email(email).isProfileActive(true).build();
 
-        UserProfile profile = userProfileRepository.findByUserId(userId)
-                .orElse(UserProfile.builder()
-                        .userId(userId)
-                        .email(email)
-                        .isProfileActive(true)
-                        .build());
+        updateEntityFromDto(profile, request);
 
+        if (photoUrl != null) profile.setPhotoUrl(photoUrl);
+        profile.setLastProfileEdit(LocalDateTime.now());
+
+        return mapToResponse(userProfileRepository.save(profile));
+    }
+
+    @Override
+    public ProfileResponseDTO updateProfile(Long userId, ProfileRequestDTO request, MultipartFile file) {
+
+        String photoUrl = uploadFileSafe(file);
+
+        return self.updateProfileInDb(userId, request, photoUrl);
+    }
+
+    @Transactional
+    public ProfileResponseDTO updateProfileInDb(
+            Long userId, ProfileRequestDTO request, String photoUrl) {
+        UserProfile profile =
+                userProfileRepository
+                        .findByUserId(userId)
+                        .orElseThrow(
+                                () ->
+                                        new ProfileNotFoundException(
+                                                "Profile not found for user id: " + userId));
+
+        updateEntityFromDto(profile, request);
+
+        if (photoUrl != null) profile.setPhotoUrl(photoUrl);
+        profile.setLastProfileEdit(LocalDateTime.now());
+
+        return mapToResponse(userProfileRepository.save(profile));
+    }
+
+    private String uploadFileSafe(MultipartFile file) {
+        if (file == null || file.isEmpty()) return null;
+        try {
+            return fileStorageService.uploadImage(file);
+        } catch (Exception e) {
+            log.error("File upload failed", e);
+            throw new RuntimeException("Image upload failed", e);
+        }
+    }
+
+    private void updateEntityFromDto(UserProfile profile, ProfileRequestDTO request) {
         if (request.getFirstName() != null) profile.setFirstName(request.getFirstName());
         if (request.getLastName() != null) profile.setLastName(request.getLastName());
         if (request.getGender() != null) profile.setGender(request.getGender());
@@ -82,33 +122,26 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (request.getBio() != null) profile.setBio(request.getBio());
         if (request.getLocation() != null) profile.setLocation(request.getLocation());
 
-        profile.setLastProfileEdit(LocalDateTime.now());
-
-        if (request.getInterests() != null) {
-            Set<InterestCategory> categories = new HashSet<>();
-            for (String interestName : request.getInterests()) {
-                interestCategoryRepository.findByName(interestName)
-                        .ifPresent(categories::add);
-            }
+        if (request.getInterests() != null && !request.getInterests().isEmpty()) {
+            Set<InterestCategory> categories =
+                    interestCategoryRepository.findByNameIn(request.getInterests());
             profile.setInterests(categories);
         }
 
         if (request.getSocialNetworks() != null) {
             profile.setSocialNetworks(request.getSocialNetworks());
         }
-
-        if (newPhotoUrl != null) {
-            profile.setPhotoUrl(newPhotoUrl);
-        }
-
-        UserProfile savedProfile = userProfileRepository.save(profile);
-        return mapToResponse(savedProfile);
     }
 
     @Override
     public ProfileResponseDTO getProfileByUserId(Long userId) {
-        UserProfile profile = userProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new ProfileNotFoundException("Profile not found for user id: " + userId));
+        UserProfile profile =
+                userProfileRepository
+                        .findByUserId(userId)
+                        .orElseThrow(
+                                () ->
+                                        new ProfileNotFoundException(
+                                                "Profile not found for user id: " + userId));
         return mapToResponse(profile);
     }
 
@@ -124,9 +157,10 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .age(p.getAge())
                 .bio(p.getBio())
                 .location(p.getLocation())
-                .interests(p.getInterests().stream()
-                        .map(InterestCategory::getName)
-                        .collect(Collectors.toSet()))
+                .interests(
+                        p.getInterests().stream()
+                                .map(InterestCategory::getName)
+                                .collect(Collectors.toSet()))
                 .socialNetworks(p.getSocialNetworks())
                 .build();
     }
@@ -134,8 +168,10 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     @Transactional
     public void deleteProfile(Long userId) {
-        UserProfile profile = userProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Profile not found"));
+        UserProfile profile =
+                userProfileRepository
+                        .findByUserId(userId)
+                        .orElseThrow(() -> new RuntimeException("Profile not found"));
 
         userProfileRepository.delete(profile);
     }

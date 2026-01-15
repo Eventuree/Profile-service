@@ -1,9 +1,8 @@
 package com.eventure.profile_service.DTO;
 
-import lombok.Data;
-
 import java.util.Map;
 import java.util.Set;
+import lombok.Data;
 
 @Data
 public class ProfileRequestDTO {

@@ -1,12 +1,11 @@
 package com.eventure.profile_service.model.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import lombok.*;
 
 @Entity
 @Table(name = "user_profiles")
@@ -30,6 +29,12 @@ public class UserProfile {
     @Column(name = "last_name")
     private String lastName;
 
+    public String getFullName() {
+        String first = firstName != null ? firstName : "";
+        String last = lastName != null ? lastName : "";
+        return (first + " " + last).trim(); // .trim() прибере зайвий пробіл, якщо прізвища немає
+    }
+
     private String email;
 
     @Column(name = "photo_url")
@@ -49,8 +54,7 @@ public class UserProfile {
     @JoinTable(
             name = "user_interests",
             joinColumns = @JoinColumn(name = "profile_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id")
-    )
+            inverseJoinColumns = @JoinColumn(name = "category_id"))
     @Builder.Default
     private Set<InterestCategory> interests = new HashSet<>();
 
@@ -66,10 +70,7 @@ public class UserProfile {
     }
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "profile_socials",
-            joinColumns = @JoinColumn(name = "profile_id")
-    )
+    @CollectionTable(name = "profile_socials", joinColumns = @JoinColumn(name = "profile_id"))
     @MapKeyColumn(name = "network_name")
     @Column(name = "url")
     private Map<String, String> socialNetworks;

@@ -1,10 +1,9 @@
 package com.eventure.profile_service.DTO;
 
-import lombok.Builder;
-import lombok.Data;
-
 import java.util.Map;
 import java.util.Set;
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder
