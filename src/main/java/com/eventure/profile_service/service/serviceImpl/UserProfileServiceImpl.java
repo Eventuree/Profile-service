@@ -5,15 +5,11 @@ import com.eventure.profile_service.DTO.ProfileResponseDTO;
 import com.eventure.profile_service.DTO.UserProfileSummaryDto;
 import com.eventure.profile_service.exception.ProfileAlreadyExistsException;
 import com.eventure.profile_service.exception.ProfileNotFoundException;
-import com.eventure.profile_service.model.entity.InterestCategory;
 import com.eventure.profile_service.model.entity.UserProfile;
-import com.eventure.profile_service.repository.InterestCategoryRepository;
 import com.eventure.profile_service.repository.UserProfileRepository;
 import com.eventure.profile_service.service.FileStorageService;
 import com.eventure.profile_service.service.UserProfileService;
 import java.time.LocalDateTime;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,25 +26,17 @@ import org.springframework.web.server.ResponseStatusException;
 public class UserProfileServiceImpl implements UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
-    private final InterestCategoryRepository interestCategoryRepository;
     private final FileStorageService fileStorageService;
 
     @Lazy @Autowired private UserProfileServiceImpl self;
 
     @Override
     public UserProfileSummaryDto getUserProfileSummary(Long id) {
-        UserProfile user =
-                userProfileRepository
-                        .findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new ResponseStatusException(
-                                                HttpStatus.NOT_FOUND,
-                                                "User not found with id: " + id));
+        UserProfile user = userProfileRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
 
-        String fullName = user.getFullName();
-
-        return new UserProfileSummaryDto(fullName.trim(), user.getPhotoUrl());
+        String fullName = user.getFullName() != null ? user.getFullName().trim() : "";
+        return new UserProfileSummaryDto(fullName, user.getPhotoUrl());
     }
 
     @Override
@@ -61,15 +49,16 @@ public class UserProfileServiceImpl implements UserProfileService {
         }
 
         String photoUrl = uploadFileSafe(file);
-
         return self.createProfileInDb(userId, email, request, photoUrl);
     }
 
     @Transactional
-    public ProfileResponseDTO createProfileInDb(
-            Long userId, String email, ProfileRequestDTO request, String photoUrl) {
-        UserProfile profile =
-                UserProfile.builder().userId(userId).email(email).isProfileActive(true).build();
+    public ProfileResponseDTO createProfileInDb(Long userId, String email, ProfileRequestDTO request, String photoUrl) {
+        UserProfile profile = UserProfile.builder()
+                .userId(userId)
+                .email(email)
+                .isProfileActive(true)
+                .build();
 
         updateEntityFromDto(profile, request);
 
@@ -80,24 +69,15 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-    public ProfileResponseDTO updateProfile(
-            Long userId, ProfileRequestDTO request, MultipartFile file) {
-
+    public ProfileResponseDTO updateProfile(Long userId, ProfileRequestDTO request, MultipartFile file) {
         String photoUrl = uploadFileSafe(file);
-
         return self.updateProfileInDb(userId, request, photoUrl);
     }
 
     @Transactional
-    public ProfileResponseDTO updateProfileInDb(
-            Long userId, ProfileRequestDTO request, String photoUrl) {
-        UserProfile profile =
-                userProfileRepository
-                        .findByUserId(userId)
-                        .orElseThrow(
-                                () ->
-                                        new ProfileNotFoundException(
-                                                "Profile not found for user id: " + userId));
+    public ProfileResponseDTO updateProfileInDb(Long userId, ProfileRequestDTO request, String photoUrl) {
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ProfileNotFoundException("Profile not found for user id: " + userId));
 
         updateEntityFromDto(profile, request);
 
@@ -124,13 +104,9 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (request.getAge() != null) profile.setAge(request.getAge());
         if (request.getBio() != null) profile.setBio(request.getBio());
         if (request.getLocation() != null) profile.setLocation(request.getLocation());
-
-        if (request.getInterests() != null && !request.getInterests().isEmpty()) {
-            Set<InterestCategory> categories =
-                    interestCategoryRepository.findByNameIn(request.getInterests());
-            profile.setInterests(categories);
+        if (request.getFavoriteCategoryIds() != null) {
+            profile.setFavoriteCategoryIds(request.getFavoriteCategoryIds());
         }
-
         if (request.getSocialNetworks() != null) {
             profile.setSocialNetworks(request.getSocialNetworks());
         }
@@ -138,13 +114,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public ProfileResponseDTO getProfileByUserId(Long userId) {
-        UserProfile profile =
-                userProfileRepository
-                        .findByUserId(userId)
-                        .orElseThrow(
-                                () ->
-                                        new ProfileNotFoundException(
-                                                "Profile not found for user id: " + userId));
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ProfileNotFoundException("Profile not found for user id: " + userId));
         return mapToResponse(profile);
     }
 
@@ -160,10 +131,7 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .age(p.getAge())
                 .bio(p.getBio())
                 .location(p.getLocation())
-                .interests(
-                        p.getInterests().stream()
-                                .map(InterestCategory::getName)
-                                .collect(Collectors.toSet()))
+                .favoriteCategoryIds(p.getFavoriteCategoryIds())
                 .socialNetworks(p.getSocialNetworks())
                 .build();
     }
@@ -171,11 +139,8 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     @Transactional
     public void deleteProfile(Long userId) {
-        UserProfile profile =
-                userProfileRepository
-                        .findByUserId(userId)
-                        .orElseThrow(() -> new RuntimeException("Profile not found"));
-
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
         userProfileRepository.delete(profile);
     }
 }

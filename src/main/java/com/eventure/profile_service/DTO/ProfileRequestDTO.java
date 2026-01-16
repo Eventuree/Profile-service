@@ -14,6 +14,6 @@ public class ProfileRequestDTO {
     private Short age;
     private String bio;
     private String location;
-    private Set<String> interests;
+    private Set<Long> favoriteCategoryIds;
     private Map<String, String> socialNetworks;
 }

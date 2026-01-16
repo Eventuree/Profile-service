@@ -50,13 +50,13 @@ public class UserProfile {
 
     private String location;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_interests",
-            joinColumns = @JoinColumn(name = "profile_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id"))
-    @Builder.Default
-    private Set<InterestCategory> interests = new HashSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "profile_favorite_categories",
+            joinColumns = @JoinColumn(name = "profile_id")
+    )
+    @Column(name = "category_id")
+    private Set<Long> favoriteCategoryIds = new HashSet<>();
 
     @Column(name = "last_profile_edit")
     private LocalDateTime lastProfileEdit;
