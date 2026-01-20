@@ -107,8 +107,8 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (request.getFavoriteCategoryIds() != null) {
             profile.setFavoriteCategoryIds(request.getFavoriteCategoryIds());
         }
-        if (request.getSocialNetworks() != null) {
-            profile.setSocialNetworks(request.getSocialNetworks());
+        if (request.getSocialMediaLinks() != null) {
+            profile.setSocialMediaLinks(request.getSocialMediaLinks());
         }
     }
 
@@ -132,7 +132,7 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .bio(p.getBio())
                 .location(p.getLocation())
                 .favoriteCategoryIds(p.getFavoriteCategoryIds())
-                .socialNetworks(p.getSocialNetworks())
+                .socialMediaLinks(p.getSocialMediaLinks())
                 .build();
     }
 

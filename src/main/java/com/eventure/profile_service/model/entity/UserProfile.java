@@ -2,9 +2,8 @@ package com.eventure.profile_service.model.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import lombok.*;
 
 @Entity
@@ -70,8 +69,10 @@ public class UserProfile {
     }
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "profile_socials", joinColumns = @JoinColumn(name = "profile_id"))
-    @MapKeyColumn(name = "network_name")
+    @CollectionTable(
+            name = "profile_socials",
+            joinColumns = @JoinColumn(name = "profile_id")
+    )
     @Column(name = "url")
-    private Map<String, String> socialNetworks;
+    private List<String> socialMediaLinks = new ArrayList<>();
 }

@@ -1,7 +1,9 @@
 package com.eventure.profile_service.DTO;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
@@ -15,5 +17,6 @@ public class ProfileRequestDTO {
     private String bio;
     private String location;
     private Set<Long> favoriteCategoryIds;
-    private Map<String, String> socialNetworks;
+    @JsonProperty("social_media_links")
+    private List<String> socialMediaLinks;
 }
