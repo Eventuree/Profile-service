@@ -18,9 +18,9 @@ public class UserProfileController {
 
     private final UserProfileService userProfileService;
 
-    @GetMapping("/{id}/summary")
-    public ResponseEntity<UserProfileSummaryDto> getUserProfileSummary(@PathVariable Long id) {
-        return ResponseEntity.ok(userProfileService.getUserProfileSummary(id));
+    @GetMapping("/{userId}/summary")
+    public ResponseEntity<UserProfileSummaryDto> getUserProfileSummary(@PathVariable Long userId) {
+        return ResponseEntity.ok(userProfileService.getUserProfileSummary(userId));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

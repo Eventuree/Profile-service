@@ -31,9 +31,9 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Lazy @Autowired private UserProfileServiceImpl self;
 
     @Override
-    public UserProfileSummaryDto getUserProfileSummary(Long id) {
-        UserProfile user = userProfileRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
+    public UserProfileSummaryDto getUserProfileSummary(Long userId) {
+        UserProfile user = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + userId));
 
         String fullName = user.getFullName() != null ? user.getFullName().trim() : "";
         return new UserProfileSummaryDto(fullName, user.getPhotoUrl(), user.getEmail());
