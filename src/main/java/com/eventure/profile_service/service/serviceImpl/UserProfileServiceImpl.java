@@ -36,7 +36,7 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
 
         String fullName = user.getFullName() != null ? user.getFullName().trim() : "";
-        return new UserProfileSummaryDto(fullName, user.getPhotoUrl());
+        return new UserProfileSummaryDto(fullName, user.getPhotoUrl(), user.getEmail());
     }
 
     @Override
