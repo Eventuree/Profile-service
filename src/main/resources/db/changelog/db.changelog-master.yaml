@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/changes/003-create-profile_favorite_categories-table.sql
   - include:
       file: db/changelog/changes/004-change-profile_socials-table.sql
+  - include:
+      file: db/changelog/changes/005-delete-ratings-table.sql
